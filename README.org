@@ -1,5 +1,4 @@
 * Quick-and-dirty org-agenda 
-/(work in progress)/
 
 ** WTF is this
 Quickly extract TODOs
