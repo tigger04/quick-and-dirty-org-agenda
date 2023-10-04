@@ -1,4 +1,4 @@
-* Quick and Dirty org-agenda 
+* Quick-and-dirty org-agenda 
 /(work in progress)/
 
 ** WTF is this
