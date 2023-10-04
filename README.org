@@ -2,11 +2,10 @@
 
 ** WTF is this
 Quickly extract TODOs
-- [X] fast: without having to fire up a hefty emacs process
-- [X] by tag (if given)
-- [X] sorted by priority
-  - [X] TODO: enforce [#n] at top of list over items which have no priority
-- [X] +filter out DONE, FAIL, PURG(atory) etc statuses+
++ [X] fast: without having to fire up a hefty emacs process
++ [X] by tag (if given)
++ [X] sorted by priority
++ [X] +filter out DONE, FAIL, PURG(atory) etc statuses+
      (redundant)
 
 ** Assumptions
