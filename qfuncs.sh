@@ -7,7 +7,9 @@
 #    execution (these things all add up til one day 😐🔫 trust me)
 
 # Why no ANSI colours? I abandoned these in favour of emojis which still stand
-# out. Too much faff when capturing output to log files etc
+# out visually. ANSI generates too much faff when capturing output to log files
+# etc. Yes there are ways but the code becomes needlessly complex, the whole
+# point of this thing is KISS after the monstrosity that came before it.
 
 # KEY:
 #    for USAGE comments, OPTION is mandatory argument, [OPTION] is optional
@@ -20,11 +22,11 @@ PATH=~/bin:~/wonky:~/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/
 
 ### fatal function ###
 die() {
+   # WTF:
+   #    Halts execution if SOME_RISKY_COMMAND fails, allowing a more useful
+   #    explanation to be shown to the user
    # USAGE:
    #    SOME_RISKY_COMMAND || die [MESSAGE]
-   # WTF:
-   #    Halts execution if SOME_RISKY_COMMAND fails, allowing some useful
-   #    explanation to be displayed to the user
 
    rc=$?
    printf "💀 %s died with exit code %s: %s\n" "$cmd_base" $rc "$*" >/dev/stderr
@@ -32,7 +34,6 @@ die() {
 }
 
 ### bash version check ###
-declare -p BASH_VERSINFO
 [ ${BASH_VERSINFO[0]} -lt 5 ] &&
    die "bash version found: $BASH_VERSION, requires bash 5+"
 
@@ -43,6 +44,47 @@ _os=${_os^}
 declare -x _os
 
 ### functions ###
+
+warn() {
+   # USAGE: warn MESSAGE
+   echo -e "⚠️ $*" >/dev/stderr
+}
+
+errortext() {
+   # USAGE: errortext MESSAGE
+   # this does not halt execution, just displays an error!
+   echo -e "⛔️ $*" >/dev/stderr
+}
+
+announce() {
+   # USAGE: errortext MESSAGE
+   {
+      echo -e "📣 $*"
+   } >/dev/stderr
+}
+
+info() {
+   # USAGE: info MESSAGE
+   echo -e "🔹 $*" >&2
+}
+
+highlight() {
+   {
+      echo -e "*️⃣ $*"
+   } >&2
+}
+
+filename() {
+   # display filename with icon (no newline!)
+
+   printf "%s" "🗎 "
+
+   if [[ "$1" == "$HOME/"* ]]; then
+      printf "%s" "~${1#"$HOME"}"
+   else
+      printf "%s" "$1"
+   fi
+}
 
 qbase() {
    # get basename of a file without unnecessary subshell
@@ -69,10 +111,10 @@ hline() {
    # pretty print a header/title or else just a spacer line
    # USAGE: hline [TITLE]
 
+   # here be dragons, I'm so sorry
+
    local cols tmp_out
    ((cols = COLUMNS > 0 ? COLUMNS - 1 : 65))
-
-   local hline_bullet='='
 
    # simplifying this to use local vars - was too complex and unpredictable letting these be set externally
    if [ -n "$thinbanner_pointer_open" ] ||
@@ -80,9 +122,10 @@ hline() {
       [ -n "$thinbanner_bullet" ] ||
       [ -n "$thinbanner_bullet_r" ]; then
       warn "pre-setting of thinbanner variables no longer supported"
-      verbose_var -v FUNCNAME BASH_SOURCE
+      declare -p FUNCNAME BASH_SOURCE >/dev/stderr
    fi
 
+   local hline_bullet='='
    local thinbanner_bullet="-"
    local thinbanner_pointer_open="> "
    local thinbanner_pointer_close=" <"
@@ -122,7 +165,7 @@ hline() {
 }
 
 thinbanner() {
-   # wrapper for hline
+   # wrapper for hline to support my legacy scripts
    hline "$@"
 }
 
@@ -146,7 +189,7 @@ qtail() {
 
 uuid() {
    # WTF: quickly generate a UUID (aka GUID)
-   # Usage: uuid [VAR]
+   # USAGE: uuid [VAR]
    # result in VAR or REPLY
 
    local abit b c theuuid
@@ -245,46 +288,6 @@ ok_confirm() {
 
    errortext timed out
    return 1
-}
-
-warn() {
-   # USAGE: warn MESSAGE
-   echo -e "⚠️ $*" >/dev/stderr
-}
-
-errortext() {
-   # USAGE: errortext MESSAGE
-   # this does not halt execution, just displays an error!
-   echo -e "⛔️ $*" >/dev/stderr
-}
-
-filename() {
-   # display filename with icon (no newline!)
-
-   printf "%s" "🗎 "
-
-   if [[ "$1" == "$HOME/"* ]]; then
-      printf "%s" "~${1#"$HOME"}"
-   else
-      printf "%s" "$1"
-   fi
-}
-
-announce() {
-   # USAGE: errortext MESSAGE
-   {
-      echo -e "📣 $*"
-   } >/dev/stderr
-}
-
-info() {
-   echo -e "🔹 $*" >&2
-}
-
-highlight() {
-   {
-      echo -e "*️⃣ $*"
-   } >&2
 }
 
 confirm_cmd_execute() {
@@ -408,13 +411,15 @@ deprecated() {
       fi
       exit 101 # calling 'die' seems to cause an infinite loop on maybe_rm
       ;;
-   esac
+   esac 1>/dev/stderr
 }
 
 timestamp() {
-   # usage: timestamp [VAR]
-   # assign timestamp to VAR if specified, otherwise echo it to STDOUT
-   # timestamp assigned to REPLY in either case
+   # WTF:
+   #    assign timestamp to VAR if specified, otherwise echo it to STDOUT.
+   #    Timestamp assigned to REPLY in either case
+   # USAGE:
+   #    timestamp [VAR]
 
    printf -v REPLY '🕘 %(%F %H:%M:%S)T' -1
 
@@ -428,7 +433,8 @@ timestamp() {
 
 grep() {
    if [[ "$_os" == "Darwin" ]]; then
-      command -v ggrep >/dev/null 2>&1 || die "GNU Grep required (brew install grep)"
+      command -v ggrep >/dev/null 2>&1 ||
+         die "GNU Grep required (brew install grep)"
       ggrep "$@"
    else
       grep "$@"
@@ -436,7 +442,7 @@ grep() {
 }
 
 ### aliases to functions ###
-alias qbasename=qbase
+# alias qbasename=qbase
 # alias qbase=qbasename
 
 ### quick variables ###
