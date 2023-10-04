@@ -23,8 +23,8 @@ Quickly extract TODOs
 quick-and-dirty-org-agenda [TAG_1] [TAG_2] .. [TAG_n]
 #+end_src
 
-where ~TAGs~ are optional
+where =TAGs= are optional
 
 ** Limitations
-- Items without a priority are listed after items with a priority. That is to say, ~org-priority-default~ is not respected. If you want that, fire up the lisp machine, there is only pain in emulating elisp functionality in bash.
-- When selecting tags, ~sort -u~ is used to avoid duplicates in the iterative greps. This means that separate items with identical headers will be deduplicated. This is not the case when all items are selected (no tags specified)
+- Items without a priority are listed after items with a priority. That is to say, =org-priority-default= is not respected. If you want that, fire up the lisp machine, there is only pain in emulating elisp functionality in bash.
+- When selecting tags, =sort -u= is used to avoid duplicates in the iterative greps. This means that separate items with identical headers will be deduplicated. This is not the case when all items are selected (no tags specified)
