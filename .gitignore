@@ -1,0 +1,17 @@
+*.avi
+*.backup
+*.bak
+*~
+*.data
+*.log
+*.errors
+*.mkv
+*.mp4
+*.swp
+*.wmv
+*.cache
+.trash/
+.Trash/
+log
+nohup.out
+.DS_Store

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Quick and Dirty org-agenda
+# (work in progress)
+
+# WTF is this: quickly extract TODOs (by tag if given) sorted by priority
+#              without having to fire up a hefty emacs process;
+#              filter out DONE, FAIL, PURG(atory) etc statuses
+
+# Assumptions (based on my own config)
+# - org agenda files are all *.org files in ~/org and not more than one level deep
+# - requires bash v5+
+
+#shellcheck source=./qfuncs.sh
+. ./qfuncs.sh
+
+set -e
+
+exit
+todo_states="(TODO|APPT|IDEA|READ|HOLD|ELAB)"
+done_states="(DONE|FAIL|PURG|DUPL)"
+
+if [[ $1 =~ ^--?h(elp)?$ ]]; then
+   cat - <<EOM
+USAGE:
+   $cmd_base [TAG_1] [TAG_2] [TAG_n]
+   
+   Returns quick and dirty agenda of TODOs, sorted by priority.
+   Returns all tags, or TAG(s) if specified.
+EOM
+   exit 2
+fi
+
+cd ~/org || die
+
+grep --no-filename -E '^\*+ ' -- *.org | sed -E -e 's/^(\*+ )//g' | sort | grep -E "^$todo_states" | grep -vE "^$done_states"
