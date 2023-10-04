@@ -1,24 +1,19 @@
-#!/bin/bash
-
-# Quick and Dirty org-agenda
-# (work in progress)
-
-# WTF is this: quickly extract TODOs (by tag if given) sorted by priority
-#              without having to fire up a hefty emacs process;
-#              filter out DONE, FAIL, PURG(atory) etc statuses
-
-# Assumptions (based on my own config)
-# - org agenda files are all *.org files in ~/org and not more than one level deep
-# - requires bash v5+
+#!/usr/bin/env bash
 
 #shellcheck source=./qfuncs.sh
 . ./qfuncs.sh
 
 set -e
 
-exit
-todo_states="(TODO|APPT|IDEA|READ|HOLD|ELAB)"
-done_states="(DONE|FAIL|PURG|DUPL)"
+### TODO states we are interested in, in order of precedence (for sorting) ###
+
+todo_states=(TODO APPT IDEA READ HOLD ELAB)
+oldIFS="$IFS"
+IFS='|' todo_states_regex="(${todo_states[*]})" # i.e. '(TODO|APPT|IDEA|..)'
+IFS="$oldIFS"
+priority_regex="\[#[A-Z]\]"
+
+### HELP ###
 
 if [[ $1 =~ ^--?h(elp)?$ ]]; then
    cat - <<EOM
@@ -31,6 +26,49 @@ EOM
    exit 2
 fi
 
+### JFDI ###
+
 cd ~/org || die
 
-grep --no-filename -E '^\*+ ' -- *.org | sed -E -e 's/^(\*+ )//g' | sort | grep -E "^$todo_states" | grep -vE "^$done_states"
+mapfile -t todos < <(
+   grep --no-filename -E '^\*+ ' -- *.org |
+      sed -E -e 's/^(\*+ )//g' |
+      grep -E "^$todo_states_regex"
+)
+
+spit_todos() {
+   for todo in "${todos[@]}"; do
+      echo "$todo"
+   done
+}
+
+if [ $# -eq 0 ]; then # all items, no tag filter
+   declare -n agenda=todos
+   # mapfile -t agenda < <(
+   #    spit_todos
+   # )
+else
+   agenda_staging=()
+   while [ $# -gt 0 ]; do
+      this_tag_regex=":$1:([^:]+:)*$"
+      mapfile -t -O "${#agenda_staging[@]}" agenda_staging < <(spit_todos | grep -E "$this_tag_regex")
+      # ^^ appends to array ^^
+      shift
+   done
+
+   mapfile -t agenda < <(for staged in "${agenda_staging[@]}"; do echo "$staged"; done | sort -u)
+fi
+
+spit_agenda() {
+   for item in "${agenda[@]}"; do
+      echo "$item"
+   done
+}
+
+for state in "${todo_states[@]}"; do
+   spit_agenda |
+      grep -E "^$state $priority_regex " |
+      sort --version-sort
+done
+
+spit_agenda | grep -vE "$todo_states_regex $priority_regex "
