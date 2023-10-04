@@ -13,7 +13,7 @@ Quickly extract TODOs
 - org agenda files defined as all *.org files in ~/org and not more than one
   level deep
 
-*Edit to your own taste, particularly you might want to set your own =todo_states=*
+Edit to your own taste, particularly you might want to set your own =todo_states=
 
 ** Requirements
 - Bash v5+
