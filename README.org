@@ -1,0 +1,26 @@
+* Quick-and-dirty-org-agenda 
+/(work in progress)/
+
+** WTF is this
+Quickly extract TODOs
+- [x] fast: without having to fire up a hefty emacs process
+- [x] by tag (if given)
+- [-] sorted by priority
+      TODO: enforce [#n] at top of list over items which have no priority
+- [ ] +filter out DONE, FAIL, PURG(atory) etc statuses+
+   (redundant)
+
+** Assumptions
+/(based on my own config)/
+- org agenda files are all *.org files in ~/org and not more than one level deep
+- edit to your own taste, particularly you might want to set your own ~todo_states~
+
+** Requirements
+- Bash v5+
+
+** Usage
+#+begin_src 
+quick-and-dirty-org-agenda [TAG_1] [TAG_2] .. [TAG_n]
+#+end_src
+
+where ~TAGs~ are optional
