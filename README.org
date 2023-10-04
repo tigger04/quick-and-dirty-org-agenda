@@ -16,7 +16,7 @@ Quickly extract TODOs
 Edit to your own taste, particularly you might want to set your own =todo_states=
 
 ** Requirements
-- Bash v5+
+- bash v5+
 
 ** Usage
 #+begin_src 
