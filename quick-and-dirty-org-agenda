@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #shellcheck source=./qfuncs.sh
-. ./qfuncs.sh
+. ~/.qfuncs.sh
 
 set -e
 
@@ -18,10 +18,12 @@ priority_regex="\[#[A-Z]\]"
 if [[ $1 =~ ^--?h(elp)?$ ]]; then
    cat - <<EOM
 USAGE:
-   $cmd_base [TAG_1] [TAG_2] [TAG_n]
+   $cmd_base [#PRIORITY] [TAG_1] [TAG_2] [TAG_n]
    
    Returns quick and dirty agenda of TODOs, sorted by priority.
    Returns all tags, or TAG(s) if specified.
+
+   Filtered by priority if specified
 EOM
    exit 2
 fi
@@ -42,22 +44,44 @@ spit_todos() {
    done
 }
 
-if [ $# -eq 0 ]; then # all items, no tag filter
+if [ $# -eq 0 ]; then # all items, no filter
    declare -n agenda=todos
-   # mapfile -t agenda < <(
-   #    spit_todos
-   # )
-else
-   agenda_staging=()
-   while [ $# -gt 0 ]; do
-      this_tag_regex=":$1:([^:]+:)*$"
-      mapfile -t -O "${#agenda_staging[@]}" agenda_staging < <(spit_todos | grep -E "$this_tag_regex")
-      # ^^ appends to array ^^
-      shift
+fi
+
+tag_filters=()
+priority_filter="("
+
+while [ $# -gt 0 ]; do
+   if [[ $1 =~ ^#(.*)$ ]]; then
+      priority_filter+="$1|"
+   else
+      tag_filters+=("$1")
+   fi
+   shift
+done
+
+priority_filter+=")"
+
+# if [ ${#args} -eq 0 ]; then # all items, no filter
+#    declare -n agenda=todos
+# mapfile -t agenda < <(
+#    spit_todos
+# )
+# else
+agenda_staging=()
+for tag in "${tag_filters[@]}"; do
+   # while [ $# -gt 0 ]; do
+   this_tag_regex=":$tag:([^:]+:)*$"
+   mapfile -t -O "${#agenda_staging[@]}" agenda_staging < <(spit_todos | grep -E "$this_tag_regex")
+   # ^^ appends to array ^^
+   # shift
+done |
+   for priority in "${priority_filters[@]}"; do
+      grep "$priority"
    done
 
-   mapfile -t agenda < <(for staged in "${agenda_staging[@]}"; do echo "$staged"; done | sort -u)
-fi
+mapfile -t agenda < <(for staged in "${agenda_staging[@]}"; do echo "$staged"; done | sort -u)
+# fi
 
 spit_agenda() {
    for item in "${agenda[@]}"; do
